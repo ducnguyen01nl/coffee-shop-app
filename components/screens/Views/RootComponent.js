@@ -15,6 +15,7 @@ import ItemAddress from '../../screenComponents/ItemAddress';
 import ChooseAddress from '../../screenComponents/ChooseAddress';
 import DescriptionItem from '../../screenComponents/DescriptionItem';
 import Note from '../../screenComponents/Note';
+import CartOrder from '../../screenComponents/CartOrder';
 
 
 
@@ -105,6 +106,7 @@ export default function RootComponent() {
               <Stack.Screen name="ChooseAddress" component={ChooseAddress} />
               <Stack.Screen name="DescriptionItem" component={DescriptionItem} />
               <Stack.Screen name="Note" component={Note} />
+              <Stack.Screen name="CartOrder" component={CartOrder} />
 
           </Stack.Navigator>
       </NavigationContainer>

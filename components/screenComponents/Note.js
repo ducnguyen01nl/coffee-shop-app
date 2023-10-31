@@ -5,7 +5,6 @@ import Entypo from 'react-native-vector-icons/Entypo'
 
 const Note = ({navigation,route}) => {
     const {data,noteDefault} = route.params;
-    console.log(noteDefault);
     const [note,setNote] = useState(noteDefault?noteDefault:'');
 
   return (

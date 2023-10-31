@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react'
-import { View,Text,StyleSheet,Image, TouchableOpacity } from 'react-native'
+import { View,Text,StyleSheet,Image, TouchableOpacity, ImageBackground } from 'react-native'
 import Entypo from 'react-native-vector-icons/Entypo'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import TabListView from '../../screenComponents/TabListView'
@@ -16,52 +16,12 @@ const Home = ({navigation}) => {
   const [addressActive,setAddressActive] = useState("");
   const [nameActive,setNameActive] = useState("");
   const [listAddress,setListAddress] = useState("");
-  const addresses = [];
-  // const [imageUrl,setImageUrl] = useState('');
-
-  // const reference = storage().ref('/images/' + userCurrent.img);
-  
-  
-  // useEffect(()=>{
-      
-  //     const storage = getStorage();
-  //     const starsRef = ref(storage,'images/'+userCurrent.img);
-    
-  //   // Get the download URL
-  //   getDownloadURL(starsRef)
-  //   .then((url) => {
-  //       setImageUrl(url);
-  //     // Insert url into an <img> tag to "download"
-  //     // setUserCurrent({...userCurrent,imgUser:url})
-  //   }) 
-  //   .catch((error) => {
-  //     console.log('lỗi'+ error);
-  //   });
-
-  // },[])
-
-  // const getListAddress = async() =>{
-  //   try {
-  //     const addressDocRef = collection(db,'address');
-  //     const q = query(addressDocRef,where('id','==',userCurrent.id))
-  //     const querySnapshot = await getDocs(q);
-  //     if(!querySnapshot.empty){
-  //       setAddressActive(querySnapshot.docs[0]);
-  //       console.log(querySnapshot.docs[0]);
-  //       querySnapshot.forEach(doc =>{
-  //         if(doc.data().active == true){
-  //           setAddressActive(doc.data().address);
-  //           console.log(doc.data.address);
-  //         }
-  //       })
-  //     }
-      
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
+  const [listOrder,setListOrder] = useState("");
+  const [quantityOrder,setQuantityOrder] = useState(0);
+  const [priceOrder,setPriceOrder] = useState(0);
   const getListAddress = async() => {
     try{
+      const addresses = [];
         
         const listRef = collection(db,'address');
         const q = query(listRef,where('idUser','==',userCurrent.id));
@@ -83,18 +43,44 @@ const Home = ({navigation}) => {
     }catch(error){
         console.log(error);
     }
-}
+  } 
 
+   //lấy list order user
+   const getListOrderUser = async() =>{
+      try {
+        const list = [];
+        let quantity = 0;
+        let price = 0;
+        const listRef = collection(db,'orderItem');
+        const q = query(listRef,where('idUser','==',userCurrent.id));
+        const querySnapshot = await getDocs(q);
+        if(!querySnapshot.empty){
+          querySnapshot.forEach((doc)=>{
+            list.push(doc.data())
+            quantity += doc.data().quantity
+            price += doc.data().price
+          })
+          setListOrder(list);
+          setQuantityOrder(quantity);
+          setPriceOrder(price);
+        }
+      } catch (error) {
+          console.log(error);
+      }
+   } 
+  
   useFocusEffect(
     React.useCallback(()=>{
       getListAddress();
+      getListOrderUser();
     },[])
   )
+
    
 
   return (
     <View style={{backgroundColor:'white',height:'100%'}}>
-      <View style={styles.topHome}>
+      <View style={styles.topHome} >
         <View style={styles.infoUser}>
           <TouchableOpacity onPress={()=>{navigation.push('ChooseAddress')}} >
             {/* <Text style={{color:'white',opacity:0.8}}>Địa chỉ</Text> */}
@@ -107,15 +93,42 @@ const Home = ({navigation}) => {
               <Entypo name='chevron-right' style={{color:'white',fontSize:18,color:'#02FFF6'}} />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity onPress={()=>navigation.push('InfoUser')}>
-            <Image style={styles.imgUser} source={{ uri: imgUser }} />
-          </TouchableOpacity>
-          {/* <Image source={{uri:imageUrl}} style={styles.imgUser} /> */}
+          <View style={{flexDirection:'row'}}>
+            {listOrder && 
+              <TouchableOpacity style={styles.searchSmall}>
+                <FontAwesome name='search' style={styles.iconSearch} />
+              </TouchableOpacity>
+            }
+            <TouchableOpacity onPress={()=>navigation.push('InfoUser')}>
+              <Image style={styles.imgUser} source={{ uri: imgUser }} />
+            </TouchableOpacity>
+            {/* <Image source={{uri:imageUrl}} style={styles.imgUser} /> */}
+          </View>
         </View>
-        <TouchableOpacity style={styles.search}>
-          <FontAwesome name='search' style={{color:'white',fontSize:18, marginHorizontal:10}} />
-          <Text style={{color:'white',fontSize:16,opacity:0.8}}>Tìm kiếm sản phẩm</Text>
-        </TouchableOpacity>
+        {
+          listOrder 
+          ?
+            
+              <View style={styles.viewOrder}>
+                  <TouchableOpacity style={styles.iconOrder}
+                    onPress={()=>navigation.push('CartOrder',{listOrder:listOrder})}
+                  >
+                    <FontAwesome name='shopping-basket' style={styles.iconOrderStyle} />
+                    <Text style={styles.textOrder}>{quantityOrder}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.btnPay}>
+                    <Text style={styles.textPay}>Trang thanh toán - {priceOrder}</Text>
+                  </TouchableOpacity>
+              </View>
+              
+          
+          : <TouchableOpacity style={styles.search}>
+              <FontAwesome name='search' style={{color:'white',fontSize:18, marginHorizontal:10}} />
+              <Text style={{color:'white',fontSize:16,opacity:0.8}}>Tìm kiếm sản phẩm</Text>
+            </TouchableOpacity>
+          
+        }
+        
         {/* <Image source={require('../../../assets/banner.jpg')} style={styles.banner} /> */}
       </View>
       <View 
@@ -133,11 +146,12 @@ const Home = ({navigation}) => {
 const styles = StyleSheet.create({
   topHome:{
     height:'25%',
-    backgroundColor:'#131313',
+    backgroundColor:'#000',
     paddingTop:20,
     paddingHorizontal:20,
     position:'relative'
   },
+  
   infoUser:{
     flexDirection:'row',
     justifyContent:'space-between',
@@ -174,6 +188,58 @@ const styles = StyleSheet.create({
     position:'absolute',
     bottom:-50,
     marginHorizontal:20,
+  },
+  viewOrder:{
+    width:'100%',
+    height:50,
+    flexDirection:'row',
+    marginTop:20,
+    alignItems:'center',
+    justifyContent:'space-between'
+  },
+  iconOrder:{
+    width:'30%',
+    flexDirection:'row',
+    borderWidth:2,
+    borderColor:'orange',
+    backgroundColor:'white',
+    borderRadius:8,
+    height:40,
+    alignItems:'center',
+    justifyContent:'center'
+  },
+  iconOrderStyle:{
+    fontSize:20,
+    color:'orange',
+    marginRight:10
+  },
+  textOrder:{
+    color:'orange'
+    
+  },
+  btnPay:{
+    width:"60%",
+    height:40,
+    backgroundColor:'orange',
+    borderRadius:8,
+    flexDirection:'row',
+    justifyContent:'center',
+    alignItems:'center'
+  },
+  textPay:{
+    color:'white'
+  },
+  searchSmall:{
+    backgroundColor:'#202020',
+    borderRadius:100,
+    justifyContent:'center',
+    alignItems:'center',
+    paddingHorizontal:12,
+    marginRight:20
+  },  
+  iconSearch:{
+    fontSize:18,
+    color:'white',
   }
 
 })
